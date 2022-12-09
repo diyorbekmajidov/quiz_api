@@ -25,7 +25,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
 class Quiz_all(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request:Request):
         quiz = Quiz.objects.all()
@@ -41,7 +41,7 @@ class Quiz_all(APIView):
         return Response(serializer.errors)
 
 class Topic_all(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request:Request, pk):
         quiz = Quiz.objects.get(id = pk)
@@ -53,3 +53,47 @@ class Topic_all(APIView):
             'topic':serilaizer.data
         }
         return Response(data)
+
+    def post(self, request:Request):
+        data=request.data
+        serializer=Topic_serilaizers(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
+class Question_all(APIView):
+    def get(self, request:Request, pk):
+        topic_filter=Topic.objects.get(id=pk)
+        topic = Topic_serilaizers(topic_filter, many = False)
+
+        quetion_id = Question.objects.filter(t_name=topic.data['id'])
+        quetion = Question_serilaizers(quetion_id, many = True)
+
+        data=[]
+        for i in quetion.data:
+            options = Option.objects.filter(quetion=i['id'])
+            option_serializer = Option_serilaizers(options, many=True) 
+            data.append({
+                'quetion':i['quetion'],
+                'id':i["id"],
+                'options':option_serializer.data    
+            })
+        return Response(data)
+
+    def post(request:Request):
+        """"
+        create question 
+        """
+        data=data.request
+        serializer=Quiz_serilaizers(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else :
+            return Response(serializer.errors, status=status.HTTP_204_NO_CONTENT)
+
+class Result_detail_all(APIView):
+    def post(request:Request):
+        pass
